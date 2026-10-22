@@ -2,8 +2,6 @@
 
 Escribe aquí tus respuestas con tus propias palabras. Pega tablas, resultados y enlaces a las capturas de `evidencias/`.
 
-> Las secciones marcadas con ⏳ dependen de las llamadas a NVIDIA NIM: se completan con la tabla que imprime la celda indicada del notebook al ejecutarlo en Colab.
-
 ---
 
 # Bloque 0 · Teoría
@@ -397,26 +395,73 @@ No elegido.
 
 ## C4 · Evaluación automática de la recuperación
 
-_Evidencia:_ [`eval/preguntas.csv`](eval/preguntas.csv) (10 preguntas), `notebooks/04_challenges.ipynb`, sección C4 (función `hit_at_k`).
+_Evidencia:_ [`eval/preguntas.csv`](eval/preguntas.csv) (10 preguntas) y `notebooks/04_challenges.ipynb`, sección C4 (función `hit_at_k`).
 
-Elegí palabras clave robustas al texto que produce MarkItDown, que pega palabras sin espacios: «0.98», «P100», «21M», «626M», «dotproducts», «h = 8». Comprobé que cada palabra clave aparece en al menos un chunk de la fuente esperada con los tres `chunk_size` (control incluido en el notebook). La recuperación es por similitud pura con `k`, sin umbral, para medir solo el ranking.
+Elegí palabras clave robustas al texto que produce MarkItDown, que pega palabras sin espacios: «0.98», «P100», «21M», «626M», «dotproducts», «h = 8». La celda de control confirma que cada palabra clave aparece en al menos un chunk de la fuente esperada con los tres `chunk_size`. La recuperación es por similitud pura con `k`, sin umbral, para medir solo el ranking.
 
-⏳ *Pegar la tabla `hit@3` / `hit@5` por `chunk_size` y el detalle por pregunta.*
+| chunk_size | # chunks | hit@3 | hit@5 |
+|---:|---:|---:|---:|
+| 400 | 326 | 90 % | 90 % |
+| 900 | 150 | 90 % | 100 % |
+| 1500 | 96 | 100 % | 100 % |
 
-_Limitaciones de la métrica:_ ⏳ (al menos dos; candidatas: una palabra clave puede aparecer en un chunk que no responde la pregunta —falso positivo— y el chunk correcto puede no contener la palabra literal o tenerla partida por la extracción del PDF —falso negativo—; además mide solo recuperación, no si la respuesta generada es correcta).
+Posición del primer chunk correcto con `chunk_size=900`, `k=5`:
+
+| id | Pregunta | Fuente | Posición |
+|---|---|---|---:|
+| 1 | Attention heads del Transformer base | attention | 1 |
+| 2 | Las dos variantes de RAG | rag | 2 |
+| 3 | BLEU del Transformer big | attention | 1 |
+| 4 | Por qué se escalan los productos punto | attention | 1 |
+| 5 | β2 de Adam | attention | **4** |
+| 6 | Label smoothing | attention | 1 |
+| 7 | GPUs de entrenamiento | attention | 1 |
+| 8 | Documentos del índice de Wikipedia | rag | 2 |
+| 9 | Arquitectura del retriever DPR | rag | 1 |
+| 10 | Parámetros entrenables de RAG | rag | 1 |
+
+_Mi análisis:_ la recuperación es buena en general: con 900 caracteres, 7 de 10 preguntas tienen el chunk correcto en el primer lugar. El único fallo de hit@3 con 900 es la pregunta de β2 de Adam: el chunk correcto aparece en el puesto 4, probablemente porque la sección de optimizador quedó partida y el texto pegado («WeusedtheAdamoptimizer…») hace que «Adam» y «beta2» no se reconozcan bien. El patrón coincide con B2: **chunks más grandes, mejor recuperación** (1500 da 100 % ya con k=3).
+
+_Limitaciones de la métrica:_
+1. **Favorece a los chunks grandes.** Un chunk de 1500 caracteres tiene más probabilidad de contener la palabra clave aunque no sea el fragmento más preciso, así que parte de la ventaja de 1500 puede ser un efecto de la métrica y no de una mejor recuperación.
+2. **Falsos positivos y negativos.** Una palabra clave puede aparecer en un chunk que no responde la pregunta (por ejemplo, «P100» en una nota al pie o en la bibliografía), y el chunk correcto puede no tenerla de forma literal por cómo se extrajo el PDF.
+3. **Mide solo la recuperación,** no si la respuesta generada es correcta: en B5-3 hubo chunks útiles y aun así el LLM mezcló datos.
+4. **10 preguntas es poco:** cada pregunta vale 10 puntos porcentuales, así que 90 % vs 100 % es una sola pregunta.
 
 ## C5 · MMR frente a similitud pura
 
-_Evidencia:_ `notebooks/04_challenges.ipynb`, sección C5 (`search_type="mmr"`, `k=5`, `fetch_k=20`, `lambda_mult=0.5`). Redundancia = coseno medio entre pares de los 5 chunks recuperados.
+_Evidencia:_ `notebooks/04_challenges.ipynb`, sección C5 (`search_type="mmr"`, `k=5`, `fetch_k=20`, `lambda_mult=0.5`; índice de 900). Redundancia = coseno medio entre pares de los 5 chunks recuperados.
 
-⏳ *Pegar la tabla de 3 preguntas × 2 estrategias y la comparación lado a lado.*
+| Pregunta | Estrategia | Chunks (paper#chunk) | Redundancia |
+|---|---|---|---:|
+| What is multi-head attention? | Similitud | attention#14, #15, #11, #13, #7 | 0.520 |
+| | MMR λ=0.5 | attention#14, **rag#78**, **attention#52**, attention#7, #11 | **0.390** |
+| Which datasets and tasks were used to evaluate RAG? | Similitud | rag#1, #20, #25, #84, #24 | 0.526 |
+| | MMR λ=0.5 | rag#1, #35, #41, #85, #94 | **0.388** |
+| How does RAG compare to BART on Jeopardy question generation? | Similitud | rag#30, #35, #36, #21, #9 | 0.557 |
+| | MMR λ=0.5 | rag#30, #21, #25, #36, #42 | **0.478** |
 
-_Conclusión:_ ⏳
+**Comparación lado a lado (pregunta 1).** Con similitud, los 5 chunks son de la sección 3.2 del paper de Attention: la definición de multi-head, sus tres usos, la Figura 2, la transición desde scaled dot-product y la motivación en la introducción. Todos son relevantes y complementarios. MMR conserva el top-1 (#14), pero reemplaza dos chunks útiles por **rag#78** (una entrada de la bibliografía del paper de RAG que cita «Attention is all you need») y **attention#52** (texto ilegible extraído de la figura de visualización de atención, con palabras invertidas como «tI si ni»).
+
+_Mi conclusión:_ MMR **bajó la redundancia en las tres preguntas** (0.52→0.39, 0.53→0.39 y 0.56→0.48), así que sí hace lo que promete: más diversidad. Pero la diversidad no siempre es cobertura útil.
+- **Ayuda más** en preguntas amplias o enumerativas, cuya respuesta está repartida por el documento. En «datasets y tareas» MMR trajo chunks de secciones más lejanas (#35, #41, #85, #94), donde aparecen distintos benchmarks, en vez de cinco fragmentos de la misma zona. También podría ayudar en preguntas que cruzan papers como B5-3, donde la similitud trajo solo chunks de RAG.
+- **Empeora** en preguntas definicionales y concretas, donde los primeros chunks por similitud ya son todos relevantes. Penalizar que se parezcan entre sí obliga a meter ruido: bibliografía y basura de figuras, como pasó con multi-head attention.
+
+Usaría MMR con un `lambda_mult` más alto (0.7–0.8) o solo en preguntas abiertas, y limpiaría del índice la bibliografía y el texto de figuras para que la diversidad no se llene de ruido.
 
 ## C6 · Persistencia del índice en disco
 
 _Evidencia:_ `notebooks/04_challenges.ipynb`, sección C6 (`QdrantClient(path="./qdrant_data")` + `collection_exists`).
 
-⏳ *Pegar las dos filas de la tabla de tiempos: «indexar desde cero» (primera ejecución) y «reabrir (sin reindexar)» (después de reiniciar el runtime).*
+| Acción | Tiempo (s) | Puntos en la colección | Top-1 de prueba |
+|---|---:|---:|---|
+| Indexar desde cero (primera ejecución) | 6.89 | 150 | attention_paper.pdf#28 (0.700) |
+| Reabrir sin reindexar (después de reiniciar el runtime) | 0.24 | 150 | attention_paper.pdf#28 (0.700) |
 
-_Qué sigue faltando para producción:_ ⏳
+_Mi análisis:_ reabrir la colección fue **~29 veces más rápido** que indexarla (0.24 s vs 6.89 s), y sin llamar a la API de embeddings. Después de reiniciar el runtime, la colección tenía los mismos 150 puntos y la consulta de prueba devolvió exactamente el mismo chunk con el mismo score (0.700), así que el índice sobrevivió intacto. Con solo 150 chunks la diferencia son segundos, pero el costo de indexar crece con el corpus y con el rate limit de NVIDIA (40 consultas/min), mientras que reabrir se mantiene casi constante.
+
+_Qué sigue faltando para producción:_
+- **Durabilidad real:** en Colab la carpeta `./qdrant_data` se borra al terminar la sesión. Habría que montar Google Drive o, mejor, usar un servidor de Qdrant con respaldos y snapshots.
+- **Concurrencia:** el modo local bloquea la carpeta para un solo cliente (por eso el notebook crea un único `persist_client`). Varios usuarios o procesos necesitan Qdrant como servicio.
+- **Acceso:** un servidor con API key o autenticación, y filtros por metadata (por ejemplo `department`) para que cada usuario solo recupere lo que le corresponde.
+- **Actualización y versionado:** cuando cambian los documentos hay que hacer upsert y borrado con ids estables. Además, si cambio el modelo de embeddings o el `chunk_size`, el índice queda inválido y hay que reconstruirlo; por eso guardaría esa configuración junto a la colección.

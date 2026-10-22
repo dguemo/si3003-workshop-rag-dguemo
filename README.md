@@ -30,9 +30,9 @@
 | C1 | HNSW contra fuerza bruta con FAISS (reto) | 15 | ✅ | [04 · C1](notebooks/04_challenges.ipynb) · [RESPUESTAS.md#C1](RESPUESTAS.md#c1--hnsw-contra-fuerza-bruta-con-faiss) |
 | C2 | Un tercer paper: el RAG que explica HNSW (reto) | 12 | ⬜ | |
 | C3 | App Gradio para los papers con filtro por paper (reto) | 15 | ⬜ | |
-| C4 | Evaluación automática de la recuperación (reto) | 12 | 🟡 | [eval/preguntas.csv](eval/preguntas.csv) · [04 · C4](notebooks/04_challenges.ipynb) |
-| C5 | MMR frente a similitud pura (reto) | 8 | 🟡 | [04 · C5](notebooks/04_challenges.ipynb) |
-| C6 | Persistencia del índice en disco (reto) | 8 | 🟡 | [04 · C6](notebooks/04_challenges.ipynb) |
+| C4 | Evaluación automática de la recuperación (reto) | 12 | ✅ | [eval/preguntas.csv](eval/preguntas.csv) · [04 · C4](notebooks/04_challenges.ipynb) |
+| C5 | MMR frente a similitud pura (reto) | 8 | ✅ | [04 · C5](notebooks/04_challenges.ipynb) |
+| C6 | Persistencia del índice en disco (reto) | 8 | ✅ | [04 · C6](notebooks/04_challenges.ipynb) |
 
 **Autoevaluación:** … / 100 puntos (núcleo 70 + retos con tope de 30: C1 + C4 + C5 + C6 = 43).
 
