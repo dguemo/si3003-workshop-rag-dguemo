@@ -1,7 +1,7 @@
 # Workshop RAG · SI3003 Inteligencia Artificial
 
 - **Nombre:** David Guerra Morales
-- **Código estudiantil:** …
+- **Código estudiantil:** 1000366604
 - **Usuario de GitHub:** dguemo
 - **Fecha:** 22 de octubre de 2026
 - **Entrega a:** jipadillab@eafit.edu.co
@@ -34,7 +34,7 @@
 | C5 | MMR frente a similitud pura (reto) | 8 | ✅ | [04 · C5](notebooks/04_challenges.ipynb) |
 | C6 | Persistencia del índice en disco (reto) | 8 | ✅ | [04 · C6](notebooks/04_challenges.ipynb) |
 
-**Autoevaluación:** … / 100 puntos (núcleo 70 + retos con tope de 30: C1 + C4 + C5 + C6 = 43).
+**Autoevaluación:** 5.0 (núcleo 70 + retos con tope de 30: C1 + C4 + C5 + C6 = 43).
 
 ## Cómo ejecutar mis notebooks
 
