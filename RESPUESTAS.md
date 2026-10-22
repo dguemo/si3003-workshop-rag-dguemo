@@ -191,32 +191,34 @@ Con solo 5 preguntas esta propuesta es frágil. Para fijarla de verdad la calibr
 
 # Bloque B · RAG sobre papers
 
-Notebook: [`notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb`](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb). Índice base: 150 chunks (55 de Attention + 95 de RAG) con `chunk_size=900`, `overlap=120`.
+Notebook: [`notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb`](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) (ejecutado en Colab el 22-oct-2026). Mismos modelos que en el Bloque A: embeddings `nvidia/nemotron-3-embed-1b` (dimensión 2048) y generación `nvidia/nemotron-3.5-lightning-30b-a3b`. Índice base: 150 chunks (55 de Attention + 95 de RAG) con `chunk_size=900`, `overlap=120`.
 
 Observación previa: MarkItDown extrae los PDFs **pegando muchas palabras sin espacio** (p. ej. «WeusedtheAdamoptimizer…», «EachWikipediaarticleissplitintodisjoint100-wordchunks»). Eso afecta tanto a los embeddings como a cualquier búsqueda por palabra clave, y lo tuve en cuenta al elegir las palabras clave de B1/B2 y C4.
 
+La columna «auto» de las tablas es un chequeo por palabras clave del ground truth; la columna «Correcta» es mi revisión manual.
+
 ## B1 · Ejecuta el RAG de papers y evalúa con el ground truth
 
-_Evidencia:_ notebook 03, celda «B1 · Evaluación contra el ground truth».
+_Evidencia:_ notebook 03, Parte 5, Bonus y celda «B1 · Evaluación contra el ground truth».
 
-⏳ *Pegar la tabla de 6 filas (Q1–Q5 y Bonus) y la lista de fuentes del bonus.*
+| # | Pregunta (resumen) | Respuesta del RAG (resumen) | Auto | Correcta | Paper correcto | Top-5 recuperado (paper#chunk, coseno) |
+|---|---|---|---|---|---|---|
+| Q1 | BLEU del Transformer big en WMT14 En→De | 28.4 | sí | **Sí** (no menciona que supera en más de 2 BLEU al estado del arte) | Sí | attention#28 (0.71), #1 (0.66), #26 (0.58), #40 (0.52), #31 (0.50) |
+| Q2 | Memoria paramétrica y no paramétrica en RAG | Seq2seq preentrenado como memoria paramétrica + índice denso de Wikipedia con un retriever neuronal como no paramétrica, entrenados end-to-end | parcial | **Parcial**: la idea es correcta, pero no nombra BART ni DPR | Sí | rag#1 (0.59), #8 (0.55), #32 (0.52), #7 (0.51), #50 (0.48) |
+| Q3 | Propósito de 1/√dk | Con dk grande los productos punto crecen y empujan el softmax a gradientes muy pequeños | sí | **Sí** | Sí | attention#11 (0.55), #12 (0.48), #13 (0.38), #16 (0.30), #20 (0.28) |
+| Q4 | RAG-Sequence vs RAG-Token | Sequence usa el mismo documento para toda la salida; Token puede usar uno distinto por token | sí | **Sí** (no menciona el costo computacional) | Sí | rag#10 (0.51), #11 (0.47), #1 (0.47), #50 (0.46), #7 (0.45) |
+| Q5 | Cabezas y dk/dv del Transformer base | 8 cabezas, dk = dv = 64 | sí | **Sí** | Sí | attention#14 (0.55), #15 (0.49), #9 (0.49), #0 (0.47), #40 (0.46) |
+| Bonus | Generador de RAG y relación con el Transformer | BART, que está basado en la arquitectura Transformer | sí | **Sí** | Sí, aparecen los dos papers | rag#7 (0.53), #11 (0.51), #10 (0.51), #12 (0.47), attention#0 (0.47) |
 
-| # | Pregunta (resumen) | Respuesta del RAG (resumen) | Correcta | Paper correcto |
-|---|---|---|---|---|
-| Q1 | BLEU del Transformer big en WMT14 En→De | ⏳ | ⏳ | ⏳ |
-| Q2 | Memoria paramétrica y no paramétrica en RAG | ⏳ | ⏳ | ⏳ |
-| Q3 | Propósito de 1/√dk | ⏳ | ⏳ | ⏳ |
-| Q4 | RAG-Sequence vs RAG-Token | ⏳ | ⏳ | ⏳ |
-| Q5 | Cabezas y dk/dv del Transformer base | ⏳ | ⏳ | ⏳ |
-| Bonus | Generador de RAG y relación con el Transformer | ⏳ | ⏳ | ⏳ |
+**Fragmentos de la bonus:** rag_paper.pdf chunks 7, 11, 10 y 12, y attention_paper.pdf chunk 0. **Sí aparecieron los dos papers**, aunque 4 de los 5 fragmentos son del paper de RAG y el único de Attention es el chunk 0 (título, autores y abstract).
 
-_Mi respuesta / análisis:_ ⏳
+_Mi análisis:_ 5 de 6 respuestas fueron correctas y 1 parcial, y en todas el contexto vino del paper correcto: en Q1–Q5 los 5 chunks recuperados son del paper esperado. La única parcial (Q2) no es una alucinación sino falta de especificidad: el modelo describió la arquitectura con las palabras genéricas del abstract («pre-trained seq2seq model», «neural retriever») sin bajar a los nombres BART y DPR, que están en la sección 2, en otros chunks. En la bonus, la parte de Attention entró solo a través del abstract; alcanzó porque bastaba con saber que el Transformer existe, pero muestra que una pregunta que cruza papers queda sesgada hacia el paper que más se parece a la pregunta. Los scores más altos (0.71 en Q1) aparecen cuando la pregunta repite términos literales del texto, como «BLEU», «WMT 2014» y «English-to-German».
 
 ## B2 · Experimentos con chunk_size, k y score_threshold
 
 _Evidencia:_ notebook 03, celdas «B2» (`build_store`, `build_chain`, tabla de configuraciones).
 
-Número de chunks por configuración (calculado con el mismo splitter y filtro de ≥ 30 caracteres):
+Número de chunks por configuración:
 
 | chunk_size / overlap | Attention | RAG | Total |
 |---|---:|---:|---:|
@@ -224,22 +226,40 @@ Número de chunks por configuración (calculado con el mismo splitter y filtro d
 | 900 / 120 | 55 | 95 | 150 |
 | 1500 / 195 | 38 | 58 | 96 |
 
-Por el hallazgo de A4, los umbrales 0.15, 0.25 y 0.40 que pide el enunciado equivalen a coseno ≥ −0,70, −0,50 y −0,20; casi seguro no filtran nada y las tres filas deberían salir iguales. Agregué el experimento **3b** con umbrales en coseno real (0.15, 0.25, 0.40 → relevancia 0.575, 0.625, 0.70) para ver el efecto que el enunciado esperaba.
+Por el hallazgo de A4, los umbrales 0.15, 0.25 y 0.40 que pide el enunciado están en la escala de relevancia `(coseno+1)/2`, es decir, coseno ≥ −0.70, −0.50 y −0.20. Agregué el experimento **3b** con umbrales en coseno real (0.15, 0.25, 0.40 → relevancia 0.575, 0.625, 0.70).
 
-⏳ *Pegar la tabla de configuraciones (aciertos de 5, parciales, chunks recuperados promedio, observación).*
+| Exp. | chunk_size | k | score_threshold | # chunks índice | Chunks recuperados (prom.) | Aciertos (de 5) | Parciales | Observación |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| 1 · chunk_size | 400 | 5 | 0.250 | 326 | 5.0 | 4 | 1 | Q2 parcial |
+| 1 · chunk_size | 900 | 5 | 0.250 | 150 | 5.0 | 4 | 1 | Q2 parcial |
+| 1 · chunk_size | **1500** | 5 | 0.250 | 96 | 5.0 | **5** | 0 | todas correctas |
+| 2 · k | 900 | 3 | 0.250 | 150 | 3.0 | 4 | 1 | Q2 parcial |
+| 2 · k | 900 | 5 | 0.250 | 150 | 5.0 | 4 | 1 | Q2 parcial |
+| 2 · k | 900 | 8 | 0.250 | 150 | 8.0 | 4 | 1 | Q2 parcial |
+| 3 · threshold (relevancia) | 900 | 5 | 0.150 | 150 | 5.0 | 4 | 1 | Q2 parcial |
+| 3 · threshold (relevancia) | 900 | 5 | 0.250 | 150 | 5.0 | 4 | 1 | Q2 parcial |
+| 3 · threshold (relevancia) | 900 | 5 | 0.400 | 150 | 5.0 | 4 | 1 | Q2 parcial |
+| 3b · threshold (coseno 0.15) | 900 | 5 | 0.575 | 150 | 5.0 | 4 | 1 | Q2 parcial |
+| 3b · threshold (coseno 0.25) | 900 | 5 | 0.625 | 150 | 5.0 | 4 | 1 | Q2 parcial |
+| 3b · threshold (coseno 0.40) | 900 | 5 | 0.700 | 150 | 4.4 | 4 | 1 | Q2 parcial; algunas preguntas reciben menos de 5 chunks |
 
-_Mi conclusión:_ ⏳ (5–8 líneas: qué parámetro movió más los resultados y si hay una configuración mejor que 900/120, k=5, 0.25).
+_Mi conclusión:_
+- El parámetro que más movió los resultados fue **`chunk_size`**: con 1500 caracteres Q2 pasó de parcial a correcta, porque un chunk grande junta en el mismo fragmento la descripción general de RAG y los nombres concretos (BART y DPR).
+- **`k`** no cambió nada (3, 5 u 8 dan 4/5). Las respuestas de estas preguntas están en 1–2 chunks muy bien rankeados, así que agregar más contexto no aporta y solo gasta tokens.
+- **`score_threshold`** en la escala del enunciado tampoco filtró nada: con 0.15, 0.25 y 0.40 siempre llegan los 5 chunks, lo que confirma el hallazgo de A4. Solo con un umbral real de coseno 0.40 empezaron a llegar menos chunks (4.4 en promedio), sin cambiar la calidad.
+- Sí hay una configuración mejor que la del notebook: **1500 / 195, k=5**. Tiene un costo: cada consulta manda ~7.500 caracteres de contexto en vez de ~4.500, y con solo 5 preguntas la diferencia es de una respuesta, así que no es concluyente. Si quisiera bajar costo sin perder calidad, probaría 1500 con k=3.
 
 ## B3 · Preguntas trampa: ¿el RAG admite que no sabe?
 
 _Evidencia:_ notebook 03, celda «B3».
 
-Preguntas (plausibles, pero sobre modelos o técnicas posteriores a los papers):
-1. *What BLEU score does GPT-4 achieve on WMT 2014 English-to-German according to the paper?*
-2. *By how many exact-match points does RAG outperform Llama 2 70B on Natural Questions?*
-3. *Which FlashAttention version does the Transformer use to reduce the memory cost of attention?*
+| # | Pregunta trampa | Chunks que llegaron al LLM (coseno) | Respuesta prompt v1 | Clasificación v1 | Respuesta prompt v2 | Clasificación v2 |
+|---|---|---|---|---|---|---|
+| T1 | What BLEU score does GPT-4 achieve on WMT 2014 English-to-German according to the paper? | attention#28 (0.56), #1 (0.55), #26 (0.49), #24 (0.42), #40 (0.41) | 28.4 | **Mezcla**: toma el BLEU real del Transformer y se lo atribuye a GPT-4 | The provided papers do not contain this information. | **Admite que no sabe** |
+| T2 | By how many exact-match points does RAG outperform Llama 2 70B on Natural Questions? | rag#29 (0.54), #30 (0.50), #25 (0.48), #9 (0.47), #42 (0.46) | 11.8 | **Inventa**: Llama 2 no aparece en el paper | 25.0 | **Inventa**: otro número distinto |
+| T3 | Which FlashAttention version does the Transformer use to reduce the memory cost of attention? | attention#5 (0.45), #6 (0.42), #7 (0.40), #15 (0.40), #1 (0.39) | «The Transformer does not use FlashAttention. It uses Multi-Head Attention to reduce the memory cost of attention.» | **Mezcla**: lo primero es cierto; lo segundo es falso (multi-head no se propone para reducir memoria) | The provided papers do not contain this information. | **Admite que no sabe** |
 
-Prompt v2 (se prueba en las tres preguntas):
+Como con el prompt original las tres respuestas inventaron o mezclaron, cambié el system prompt (v2):
 
 ```diff
 - "Answer using only the supplied academic-paper excerpts. "
@@ -252,35 +272,47 @@ Prompt v2 (se prueba en las tres preguntas):
   "Mention the paper title supporting the answer."
 ```
 
-⏳ *Pegar la tabla (chunks que llegaron al LLM, respuesta y clasificación con prompt v1 y v2).*
-
-_Mi respuesta / análisis:_ ⏳ clasificar cada una como admite / inventa / mezcla.
+_Mi análisis:_ el prompt original **no admitió que no sabía en ninguna de las tres**. En todos los casos le llegaron 5 chunks con coseno entre 0.39 y 0.56 (scores parecidos a los de las preguntas legítimas de B1), así que el modelo tenía «material» y lo usó: en T1 reutilizó el 28.4 que está en los chunks, en T2 sacó un número de las tablas de resultados de RAG y en T3 justificó con un dato del paper algo que el paper no dice. El prompt v2, que obliga a verificar que cada entidad de la pregunta aparezca literalmente en el contexto, corrigió T1 y T3, pero **falló en T2**: hasta inventó un número diferente. Mi hipótesis es que en T2 los chunks recuperados sí contienen «RAG», «Natural Questions» y muchos números de exact match, y el modelo no detecta que la única entidad faltante es «Llama 2 70B». Como el umbral de similitud no separa estas preguntas (sus scores se parecen a los de las buenas), la verificación de entidades debería hacerse en código antes de llamar al LLM, por ejemplo extrayendo los nombres de modelos de la pregunta y comprobando que aparezcan en los chunks, en vez de confiar solo en el prompt.
 
 ## B4 · Preguntas en español sobre papers en inglés
 
 _Evidencia:_ notebook 03, celda «B4».
 
-Traducciones usadas: Q1 «¿Qué puntaje BLEU obtuvo el Transformer (modelo big) en WMT 2014 inglés-alemán?», Q3 «¿Cuál es el propósito del factor de escala sqrt(dk) en la atención de producto punto escalado?», Q4 «¿Cuáles son las dos variantes del modelo RAG propuestas en el paper y en qué se diferencian?».
+Traducciones: Q1 «¿Qué puntaje BLEU obtuvo el Transformer (modelo big) en WMT 2014 inglés-alemán?», Q3 «¿Cuál es el propósito del factor de escala sqrt(dk) en la atención de producto punto escalado?», Q4 «¿Cuáles son las dos variantes del modelo RAG propuestas en el paper y en qué se diferencian?».
 
-**Cómo compruebo la hipótesis:** además de comparar los top-5 chunks EN vs ES, la celda mide el coseno entre el embedding de la pregunta en inglés y el de su traducción, y lo compara con el de una pregunta no relacionada. Si el modelo es multilingüe, `coseno(EN, ES)` debe ser claramente mayor que `coseno(EN, no relacionada)`.
+| # | Overlap top-5 (EN∩ES) | Coseno medio EN | Coseno medio ES | Top-1 EN | Top-1 ES | Correcta EN | Correcta ES (manual) | Respuesta ES |
+|---|---:|---:|---:|---|---|---|---|---|
+| Q1 | 4/5 | 0.592 | 0.584 | attention#28 (0.71) | attention#28 (0.71) | Sí | Sí | 28.4 |
+| Q3 | 4/5 | 0.398 | 0.270 | attention#11 (0.55) | attention#11 (0.35) | Sí | Sí | Contrarrestar que los productos punto crezcan con dk grande y empujen el softmax a gradientes pequeños |
+| Q4 | 5/5 | 0.474 | 0.453 | rag#10 (0.51) | rag#10 (0.49) | Sí | Sí | RAG-Sequence (mismo documento) y RAG-Token (documento distinto por token) |
 
-⏳ *Pegar la tabla EN vs ES y la tabla de cosenos.*
+El chequeo automático marcó Q3 y Q4 en español como «parcial», pero leyéndolas son correctas. El problema es que las palabras clave del ground truth están en inglés («magnitude», «same», «each token») y la respuesta llegó en español: eso es una limitación de mi evaluación, no del RAG.
 
-_Mi hipótesis:_ ⏳
+Prueba de la hipótesis (coseno entre embeddings de pregunta):
+
+| # | coseno(EN, ES) | coseno(EN, pregunta no relacionada) |
+|---|---:|---:|
+| Q1 | 0.957 | 0.001 |
+| Q3 | 0.727 | 0.013 |
+| Q4 | 0.979 | 0.004 |
+
+_Mi hipótesis:_ `nemotron-3-embed-1b` es un modelo de embeddings **multilingüe** que proyecta una pregunta y su traducción casi al mismo punto del espacio: coseno 0.96–0.98 entre EN y ES, frente a ~0.00 con una pregunta sin relación. Por eso la búsqueda entre idiomas funciona: se recuperaron casi los mismos chunks (4/5, 4/5 y 5/5, con el mismo top-1 en los tres casos) y las respuestas en español fueron igual de correctas, incluso redactadas en español como pide el prompt. La alineación no es perfecta: Q3 tuvo el coseno EN–ES más bajo (0.727) y sus scores de recuperación bajaron de 0.398 a 0.270 en promedio. Creo que se debe a la traducción de términos técnicos como «Scaled Dot-Product Attention» → «atención de producto punto escalado», que no es una frase estándar en español. Para comprobarlo más a fondo: (1) repetiría con 20–30 preguntas y mediría el overlap promedio; (2) probaría variantes de Q3 dejando los términos técnicos en inglés dentro de la pregunta en español, y si el coseno sube, confirmaría que el problema es la terminología; (3) compararía con un modelo de embeddings solo en inglés, donde esperaría que el overlap caiga mucho.
 
 ## B5 · Escribe tu propio quiz con ground truth
 
 _Evidencia:_ notebook 03, sección «B5» (tres celdas de código con su bloque `<details>`). Verifiqué cada ground truth en el texto de los PDFs.
 
-| # | Pregunta | Ground truth | Sección |
-|---|---|---|---|
-| B5-1 | Optimizador, β1, β2, ε y warmup del Transformer | Adam, β1 = 0.9, β2 = 0.98, ε = 10⁻⁹, `warmup_steps = 4000` | Attention, §5.3 |
-| B5-2 | Dump de Wikipedia, cómo se parte y cuántos documentos | Dump de diciembre de 2018, fragmentos disjuntos de 100 palabras, 21 millones de documentos (FAISS + HNSW) | RAG, §3 |
-| B5-3 (combina ambos) | Parámetros del Transformer big vs parámetros entrenables de RAG | 213M vs 626M (110M + 110M de BERT en DPR + 406M de BART-large); RAG ≈ 2,9× más grande | Attention Tabla 3 + RAG Apéndice G |
+| # | Pregunta | Ground truth | Respuesta del RAG | Correcta | Top-5 recuperado |
+|---|---|---|---|---|---|
+| B5-1 | Optimizador, β1, β2, ε y warmup del Transformer | Adam, β1 = 0.9, β2 = 0.98, ε = 10⁻⁹, `warmup_steps = 4000` (Attention §5.3) | Adam con β₁ = 0.9, β₂ = 0.98, ε = 10⁻⁹ y warmup_steps = 4000 | **Sí** | Solo Attention: #25 (0.52), #29, #39, #1, #27 |
+| B5-2 | Dump de Wikipedia, cómo se parte y cuántos documentos | Dump de diciembre de 2018, fragmentos disjuntos de 100 palabras, 21M documentos (RAG §3) | Dump de diciembre de 2018, fragmentos disjuntos de 100 palabras, 21M documentos | **Sí** | Solo RAG: #18 (0.51), #1, #7, #42, #37 |
+| B5-3 *(combina ambos papers)* | Parámetros del Transformer big vs parámetros entrenables de RAG | Transformer big: 213M (Attention Tabla 3). RAG: 626M (RAG Apéndice G). RAG ≈ 2,9× más grande | «El Transformer big tiene 11 mil millones de parámetros entrenables y RAG 626 millones; el Transformer big es más grande» | **No** | Solo RAG: #91 (0.60), #10, #93, #1, #7 |
 
-⏳ *Pegar la tabla de resultados (respuesta, correcta, papers en el top-5).*
+_Mi análisis:_ las dos preguntas de un solo paper fueron perfectas, incluso con varios números exactos en la misma respuesta. La pregunta que combina los dos papers **falló, y de una forma muy instructiva**:
+1. **La recuperación no trajo nada del paper de Attention.** Los 5 chunks son del paper de RAG, y el dato de 213M está en una fila de la Tabla 3 («| big | 6 | 1024 | … | 213 |»). Una fila de tabla convertida a texto, sin palabras como «parameters» cerca, genera un embedding que casi no se parece a la pregunta.
+2. **El modelo llenó el hueco con un dato equivocado del otro paper.** El chunk rag#91 (el de mayor score, 0.60) es el Apéndice G, que menciona RAG con 626M y también **T5-11B, con 11 mil millones de parámetros**. El modelo confundió «T5-11B» con «el Transformer big» y concluyó lo contrario de la verdad.
 
-_Mi respuesta / análisis:_ ⏳
+El 626M de RAG sí es correcto. Este es el caso más peligroso: una respuesta mitad correcta, mitad inventada, con apariencia segura. Mejoras que probaría: subir `k` o usar MMR (reto C5) para obligar a traer chunks de ambos papers, filtrar por `metadata.source` y hacer una consulta por paper, y tratar las tablas aparte al indexar (por ejemplo, convertir cada fila en una oración con el encabezado de la columna).
 
 ---
 
@@ -288,15 +320,26 @@ _Mi respuesta / análisis:_ ⏳
 
 ## R1 · Reflexión final con tus datos
 
-_Evidencia:_ tablas de A1–A4 y B1–B5.
+_Evidencia:_ tablas de A1–A4 y B1–B5 de este documento.
 
-⏳ *Responder con los resultados de Colab (mínimo 3 oraciones cada una):*
+**1. ¿Qué ocurrió cuando el contexto no contenía información suficiente? ¿El modelo reconoció la limitación o inventó?**
+Dependió mucho de qué tan «tentador» era el contexto recuperado. Cuando la pregunta no tenía nada parecido en el corpus (vacaciones en A1, NIT en A2), el modelo dijo «No tengo esa información» incluso con el prompt original. Pero cuando los chunks recuperados contenían números y entidades parecidos, inventó o mezcló: en B3 las tres preguntas trampa fallaron con el prompt original (28.4 atribuido a GPT-4, un 11.8 inventado para Llama 2 y una afirmación falsa sobre FlashAttention), y en B5-3 confundió T5-11B con el Transformer big. El prompt v2, que exige verificar las entidades, corrigió 2 de las 3 trampas, y la frase fija de A3 convirtió una respuesta absurda («soy un modelo de NVIDIA») en una negativa exacta. Conclusión: el prompt ayuda mucho, pero no garantiza honestidad cuando el contexto se parece a la pregunta.
 
-1. ¿Qué ocurrió cuando el contexto no contenía información suficiente? ¿El modelo reconoció la limitación o inventó?
-2. ¿Qué fragmentos se recuperaron para la pregunta bonus? ¿Aparecieron ambos papers?
-3. ¿Qué efecto tuvo modificar `chunk_size`, `chunk_overlap`, `k` o `score_threshold`?
-4. ¿Por qué conviene separar el modelo de embeddings del modelo generativo?
-5. ¿Qué cambiarías para llevar este prototipo a producción? (persistencia, control de acceso, evaluación, observabilidad y costos)
+**2. ¿Qué fragmentos se recuperaron para la pregunta bonus? ¿Aparecieron ambos papers?**
+Se recuperaron los chunks 7, 11, 10 y 12 de `rag_paper.pdf` y el chunk 0 de `attention_paper.pdf`, así que sí aparecieron los dos papers. Pero la representación fue desigual: 4 de 5 fragmentos son de RAG y el de Attention es el abstract, que entró con un score de 0.47, el más bajo del top-5. Alcanzó para la bonus porque la respuesta solo necesitaba saber que BART es un Transformer, algo que el propio paper de RAG ya dice. En B5-3, donde sí hacía falta un dato concreto de Attention (213M), ese paper no apareció y la respuesta falló. Una pregunta que cruza documentos no garantiza que el retriever traiga ambos.
+
+**3. ¿Qué efecto tuvo modificar `chunk_size`, `chunk_overlap`, `k` o `score_threshold`?**
+En B2, `chunk_size` fue el único parámetro con efecto: con 1500/195 (96 chunks) las 5 preguntas fueron correctas, contra 4/5 con 400 y 900, porque un chunk grande juntó la idea general de RAG con los nombres BART y DPR que le faltaban a Q2. Cambiar `k` entre 3, 5 y 8 no movió el resultado, porque la evidencia estaba en los primeros 1–2 chunks. Con `score_threshold` descubrí que `langchain-qdrant` lo compara contra `(coseno+1)/2`: los valores del curso (0.15–0.40) equivalen a coseno negativo y nunca filtraron nada; solo un umbral real de coseno 0.40 empezó a recortar chunks (4.4 en promedio). En mi corpus de A2, los documentos cortos con dos párrafos me llevaron a elegir 500/50 para que cada subtema quedara en su propio chunk, y con eso el chunk correcto quedó primero en las 5 preguntas.
+
+**4. ¿Por qué conviene separar el modelo de embeddings del modelo generativo?**
+Porque hacen trabajos distintos con costos distintos. El de embeddings se ejecuta sobre todos los chunks al indexar y sobre cada pregunta, y tiene que ser barato, rápido y estable. El generativo solo se llama una vez por respuesta y es donde está la calidad del lenguaje. Lo viví hoy: el modelo generativo del curso (`nemotron-3-super`) dejó de estar disponible y lo cambié por `nemotron-3.5-lightning` **sin tocar el índice**, porque los vectores dependen solo de `nemotron-3-embed-1b`. Si fueran el mismo modelo, cambiar el LLM habría obligado a reindexar todo. Además, cada uno se escoge por su propia virtud: el embedding multilingüe permitió buscar en inglés con preguntas en español (coseno EN–ES de 0.96–0.98 en B4), independientemente del idioma en que responda el LLM.
+
+**5. ¿Qué cambiarías para llevar este prototipo a producción?**
+- **Persistencia:** hoy el índice vive en `QdrantClient(":memory:")` y cada reinicio vuelve a pagar embeddings. Usaría un Qdrant persistente o un servidor (reto C6), con respaldos y versionado del índice por modelo de embeddings y `chunk_size`.
+- **Control de acceso:** mi corpus ya tiene `department` en la metadata. Lo usaría para filtrar en Qdrant según el rol del usuario, de modo que alguien de ventas no recupere documentos de recursos humanos.
+- **Evaluación:** un conjunto de preguntas con ground truth más grande, con métricas de recuperación (hit@k, reto C4) y de respuesta. Mi chequeo por palabras clave falló con respuestas en español (B4), así que agregaría revisión humana o un juez automático, e incluiría preguntas trampa como las de B3 en cada versión.
+- **Observabilidad:** registrar por cada consulta los chunks recuperados con su score, el modelo usado y la latencia. Así se habría visto de inmediato que el umbral no filtraba nada, y también las respuestas que no citan fuente.
+- **Costos y disponibilidad:** el plan gratuito tiene rate limit (vi varios 429) y los modelos cambian sin aviso (404 y 410 hoy). Pondría reintentos, una lista de modelos de respaldo como la que agregué, caché de respuestas frecuentes y un `chunk_size`/`k` elegido midiendo tokens por consulta, no solo aciertos.
 
 ---
 

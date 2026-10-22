@@ -21,12 +21,12 @@
 | A2 | Tu propio corpus de documentos | 6 | 🟡 | [data/company_documents.json](data/company_documents.json) · [02b §4.2](notebooks/02b_rag_app_nvidia_nim_colab.ipynb) · `evidencias/A2_corpus.png` |
 | A3 | Ingeniería del prompt (antes y después) | 5 | ✅ | [02b §4.3](notebooks/02b_rag_app_nvidia_nim_colab.ipynb) |
 | A4 | Muestra el score de similitud en las fuentes | 5 | 🟡 | [02b §4.4 y chat()](notebooks/02b_rag_app_nvidia_nim_colab.ipynb) · `evidencias/A4_scores.png` |
-| B1 | Ejecuta el RAG de papers y evalúa con el ground truth | 6 | 🟡 | [03 · B1](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) |
-| B2 | Experimentos con chunk_size, k y score_threshold | 8 | 🟡 | [03 · B2](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) |
-| B3 | Preguntas trampa: ¿el RAG admite que no sabe? | 6 | 🟡 | [03 · B3](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) |
-| B4 | Preguntas en español sobre papers en inglés | 5 | 🟡 | [03 · B4](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) |
-| B5 | Escribe tu propio quiz con ground truth | 5 | 🟡 | [03 · B5](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) |
-| R1 | Reflexión final con tus datos | 10 | 🟡 | [RESPUESTAS.md#Reflexión](RESPUESTAS.md#reflexión) |
+| B1 | Ejecuta el RAG de papers y evalúa con el ground truth | 6 | ✅ | [03 · B1](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) |
+| B2 | Experimentos con chunk_size, k y score_threshold | 8 | ✅ | [03 · B2](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) |
+| B3 | Preguntas trampa: ¿el RAG admite que no sabe? | 6 | ✅ | [03 · B3](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) |
+| B4 | Preguntas en español sobre papers en inglés | 5 | ✅ | [03 · B4](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) |
+| B5 | Escribe tu propio quiz con ground truth | 5 | ✅ | [03 · B5](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) |
+| R1 | Reflexión final con tus datos | 10 | ✅ | [RESPUESTAS.md#Reflexión](RESPUESTAS.md#reflexión) |
 | C1 | HNSW contra fuerza bruta con FAISS (reto) | 15 | ✅ | [04 · C1](notebooks/04_challenges.ipynb) · [RESPUESTAS.md#C1](RESPUESTAS.md#c1--hnsw-contra-fuerza-bruta-con-faiss) |
 | C2 | Un tercer paper: el RAG que explica HNSW (reto) | 12 | ⬜ | |
 | C3 | App Gradio para los papers con filtro por paper (reto) | 15 | ⬜ | |
