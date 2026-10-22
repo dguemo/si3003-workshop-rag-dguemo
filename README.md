@@ -19,7 +19,7 @@
 | T5 | El costo de la fuerza bruta | 2 | ✅ | [RESPUESTAS.md#T5](RESPUESTAS.md#t5--el-costo-de-la-fuerza-bruta) |
 | A1 | Ejecuta la app RAG de punta a punta | 4 | 🟡 | [02b §4.1](notebooks/02b_rag_app_nvidia_nim_colab.ipynb) · `evidencias/A1_gradio.png` |
 | A2 | Tu propio corpus de documentos | 6 | 🟡 | [data/company_documents.json](data/company_documents.json) · [02b §4.2](notebooks/02b_rag_app_nvidia_nim_colab.ipynb) · `evidencias/A2_corpus.png` |
-| A3 | Ingeniería del prompt (antes y después) | 5 | 🟡 | [02b §4.3](notebooks/02b_rag_app_nvidia_nim_colab.ipynb) |
+| A3 | Ingeniería del prompt (antes y después) | 5 | ✅ | [02b §4.3](notebooks/02b_rag_app_nvidia_nim_colab.ipynb) |
 | A4 | Muestra el score de similitud en las fuentes | 5 | 🟡 | [02b §4.4 y chat()](notebooks/02b_rag_app_nvidia_nim_colab.ipynb) · `evidencias/A4_scores.png` |
 | B1 | Ejecuta el RAG de papers y evalúa con el ground truth | 6 | 🟡 | [03 · B1](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) |
 | B2 | Experimentos con chunk_size, k y score_threshold | 8 | 🟡 | [03 · B2](notebooks/03_rag_workshop_papers_nvidia_nim_colab.ipynb) |

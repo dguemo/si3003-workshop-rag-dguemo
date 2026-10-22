@@ -83,15 +83,27 @@ _Evidencia:_ presentación [Small World y HNSW](https://ia-eafit-rag.netlify.app
 
 # Bloque A · App RAG empresarial
 
-Notebook: [`notebooks/02b_rag_app_nvidia_nim_colab.ipynb`](notebooks/02b_rag_app_nvidia_nim_colab.ipynb). Separé `build_pipeline` en `build_index` (chunking + embeddings + Qdrant) y `build_chain` (retriever + prompt + LLM) para que cambiar el prompt o el umbral no vuelva a pagar embeddings.
+Notebook: [`notebooks/02b_rag_app_nvidia_nim_colab.ipynb`](notebooks/02b_rag_app_nvidia_nim_colab.ipynb) (ejecutado en Colab el 22-oct-2026).
+
+**Modelos usados:** embeddings `nvidia/nemotron-3-embed-1b` (dimensión 2048) y generación **`nvidia/nemotron-3.5-lightning-30b-a3b`**. El modelo del curso, `nvidia/nemotron-3-super-120b-a12b`, devolvió `404 Function … Not found for account` (salió del catálogo gratuito de build.nvidia.com), así que la celda de configuración prueba una lista de modelos vigentes y usa el primero que responde. Además apagué el modo razonamiento (`with_thinking_mode(enabled=False)`) porque al principio el modelo gastaba los tokens razonando y devolvía respuestas vacías.
+
+Separé `build_pipeline` en `build_index` (chunking + embeddings + Qdrant) y `build_chain` (retriever + prompt + LLM) para que cambiar el prompt o el umbral no vuelva a pagar embeddings.
 
 ## A1 · Ejecuta la app RAG de punta a punta
 
 _Evidencia:_ `evidencias/A1_gradio.png` · notebook 02b, sección 4.1 · índice demo: 4 documentos, 4 chunks.
 
-⏳ *Pegar la tabla «A1 · Corpus demo» (5 preguntas: las 4 de ejemplo y «¿Cuántos días de vacaciones pagadas tienen los empleados al año?», que no está en los documentos).*
+Configuración original del curso: `chunk_size=400`, `overlap=40`, `k=3`, `score_threshold=0.3` y prompt original.
 
-_Mi respuesta / análisis:_ ⏳
+| # | Pregunta | Respuesta del RAG | Fuentes recuperadas | Top-1 (coseno) | ¿Correcta? |
+|---|---|---|---|---|---|
+| 1 | ¿Cuál es el precio del plan Enterprise de CloudSync Pro? | $49/mes por usuario con compromiso anual. | CloudSync Pro — Precios, Onboarding, Política de reembolsos | CloudSync Pro — Precios (0.479) | Sí |
+| 2 | ¿Cuántos días pueden trabajar remotamente los empleados? | Hasta 3 días por semana. | Política de trabajo remoto, Onboarding, Política de reembolsos | Política de trabajo remoto (0.639) | Parcial: omite «con aprobación del jefe directo» |
+| 3 | ¿Qué pasa con los reembolsos mayores a $100? | Requieren aprobación del supervisor y se procesan en 3 a 5 días hábiles al método de pago original. | Política de reembolsos, Política de trabajo remoto, CloudSync Pro — Precios | Política de reembolsos (0.644) | Sí |
+| 4 | ¿Qué ocurre durante la primera semana de onboarding? | Se completan módulos obligatorios de seguridad, cumplimiento y cultura de la empresa. | Onboarding, Política de trabajo remoto, Política de reembolsos | Onboarding (0.435) | Sí |
+| 5 | ¿Cuántos días de vacaciones pagadas tienen los empleados al año? *(fuera de contexto)* | No tengo esa información. | Política de trabajo remoto, CloudSync Pro — Precios, Onboarding | Política de trabajo remoto (0.255) | Sí: se negó |
+
+_Mi análisis:_ las cuatro preguntas de ejemplo recuperaron el documento correcto en el primer lugar, y tres respuestas fueron completas. En la de trabajo remoto el modelo recortó la condición de aprobación del jefe, un detalle secundario pero importante en una política. Con la pregunta de vacaciones no inventó nada: respondió que no tenía la información, aunque igual le llegaron 3 fragmentos. Eso pasa porque con solo 4 chunks y `k=3` el retriever siempre devuelve casi todo el índice: el umbral 0.3 no filtró nada (ver A4), y la honestidad dependió por completo del prompt. El top-1 de la pregunta fuera de contexto (0.255) quedó claramente por debajo de las buenas (0.435–0.644).
 
 ## A2 · Tu propio corpus de documentos
 
@@ -109,9 +121,19 @@ _Evidencia:_ [`data/company_documents.json`](data/company_documents.json) · `ev
 
 Con 700 cada documento queda en un solo chunk y el embedding mezcla dos subtemas (p. ej. precios de los modelos y el regalo por compra); con 400 se parten párrafos que debían quedar juntos. Con 500 solo se parten los dos documentos más largos, justo en el salto de párrafo.
 
-⏳ *Pegar la tabla «A2 · Corpus Andina Bikes» (5 preguntas con respuesta + 2 sin respuesta: patinetas eléctricas y NIT). La columna «¿Correcta? (auto)» es un chequeo por palabras clave; confirmar a mano.*
+Índice: 10 documentos → 12 chunks. Prompt original, `k=3`, `score_threshold=0.3`.
 
-_Mi respuesta / análisis:_ ⏳
+| # | Pregunta | Respuesta del RAG | Fuentes recuperadas | Top-1 (coseno) | ¿Correcta? |
+|---|---|---|---|---|---|
+| 1 | ¿Cuánto cuesta la Palmas E-Bike y qué autonomía tiene? | $6.900.000 COP y una autonomía aproximada de 60 km por carga. | Catálogo y precios…, Garantía…, Servicios de mantenimiento… | Catálogo y precios de bicicletas urbanas (0.435) | Sí |
+| 2 | ¿Quién debe aprobar un descuento del 15 %? | El gerente comercial, según la política de descuentos. | Política de descuentos, Turnos y horas extra…, Plan de pagos… | Política de descuentos (0.532) | Sí |
+| 3 | ¿Qué interés tiene la financiación a 6 cuotas? | El interés mensual es del 1,5 %. | Plan de pagos a cuotas, Servicios de mantenimiento…, Envíos… | Plan de pagos a cuotas (0.478) | Sí |
+| 4 | ¿Cuánto dura la garantía de la batería de la bicicleta eléctrica? | 2 años o 800 ciclos de carga, lo que ocurra primero. | Garantía…, Servicios de mantenimiento…, Política de devoluciones… | Garantía de bicicletas y componentes (0.604) | Sí |
+| 5 | ¿Puedo devolver una bicicleta y recibir mi dinero de vuelta? | No: solo se cambia por otro modelo en los primeros 7 días y no hay reembolsos en dinero. | Política de devoluciones y cambios, Catálogo…, Plan de pagos… | Política de devoluciones y cambios (0.577) | Sí (omite el límite de 20 km) |
+| 6 | ¿Venden patinetas eléctricas? *(fuera de contexto)* | «No, soy un modelo de lenguaje creado por investigadores de NVIDIA.» | Servicios de mantenimiento…, Catálogo…, Garantía… | Servicios de mantenimiento del taller (0.282) | **No**: respuesta sin sentido |
+| 7 | ¿Cuál es el NIT de Andina Bikes? *(fuera de contexto)* | No tengo esa información. | Plan de pagos…, Catálogo…, Horarios y sedes | Plan de pagos a cuotas (0.439) | Sí: se negó |
+
+_Mi análisis:_ las 5 preguntas con respuesta en el corpus fueron correctas y el chunk correcto siempre quedó en el primer lugar, así que con documentos cortos y bien separados por tema la recuperación no fue el cuello de botella. De las 2 preguntas fuera de contexto, el NIT se resolvió bien. Las patinetas produjeron una respuesta absurda: el modelo interpretó «¿Venden…?» como si le preguntaran qué es él y contestó con su identidad. No inventó un dato de la tienda, pero tampoco usó la fórmula de «no tengo esa información»; eso justifica endurecer el prompt en A3. Algo que no esperaba: la pregunta del NIT tuvo un top-1 de 0.439, más alto que la buena pregunta de la Palmas E-Bike (0.435). Mi explicación es que «Andina Bikes» aparece en varios chunks y el embedding empareja el nombre de la empresa aunque el dato pedido no exista.
 
 ## A3 · Ingeniería del prompt (antes y después)
 
@@ -130,9 +152,13 @@ _Evidencia:_ notebook 02b, sección 4.3 (mismo índice, solo cambia el prompt).
 
 Preguntas: fácil «¿Qué interés tiene la financiación a 6 cuotas?», ambigua «¿Cuánto cuesta el mantenimiento?» (hay tres paquetes) y fuera de contexto «¿Venden patinetas eléctricas?».
 
-⏳ *Pegar la tabla comparativa (respuesta antes/después, ¿cita [título]?, ¿frase fija?, número de oraciones).*
+| Tipo | Pregunta | Respuesta ANTES | Respuesta DESPUÉS | ¿Cita [título]? | ¿Frase fija? | Oraciones antes → después |
+|---|---|---|---|---|---|---|
+| Fácil | ¿Qué interés tiene la financiación a 6 cuotas? | El interés mensual es del 1,5 %. | Las compras a 6 cuotas tienen un interés del 1,5 % mensual. | No | No aplica | 1 → 1 |
+| Ambigua | ¿Cuánto cuesta el mantenimiento? | Lista en Markdown con los tres paquetes ($60.000, $140.000 y $190.000 COP) más una nota adicional. | Varía según el tipo: básico $60.000, completo $140.000 y eléctricas $190.000 COP. [Servicios de mantenimiento del taller] | Sí | No aplica | 1 → 2 |
+| Fuera de contexto | ¿Venden patinetas eléctricas? | «No, soy un modelo de lenguaje creado por investigadores de NVIDIA.» | No encuentro esa información en los documentos. | No aplica | **Sí** | 1 → 1 |
 
-_Mi respuesta / análisis:_ ⏳ ¿Qué instrucción tuvo más efecto y cuál ignoró el modelo?
+_Mi análisis:_ la instrucción con más efecto fue la **frase fija**. Convirtió la respuesta absurda de las patinetas en una negativa exacta y verificable, que además se puede detectar automáticamente en una evaluación. La restricción de **máximo 3 oraciones** también se cumplió: en la pregunta ambigua el modelo pasó de una lista con viñetas y una nota extra a un resumen compacto que sigue cubriendo los tres paquetes. La instrucción que el modelo **ignoró a medias** fue la de **citar siempre el título**: la usó en la ambigua, pero no en la fácil, aunque el prompt dice «siempre». Mi conclusión es que el modelo obedece mejor las instrucciones que cambian el contenido de la respuesta (qué decir cuando falta información, cuánto escribir) que las de formato. Si la cita fuera obligatoria, la agregaría en el código desde la metadata de los documentos recuperados, en vez de confiar en el LLM.
 
 ## A4 · Muestra el score de similitud en las fuentes
 
@@ -142,9 +168,24 @@ _Evidencia:_ `evidencias/A4_scores.png` · notebook 02b, sección 4.4 y función
 
 **Hallazgo al implementarlo (verificado en el código de `langchain-qdrant` 1.1.0).** El retriever con `similarity_score_threshold` no compara el umbral contra el coseno, sino contra una «relevancia» `(coseno + 1) / 2`. Entonces `score_threshold = 0.3` equivale a **coseno ≥ −0,4**, que en la práctica no descarta nada. La guía dice «descarta los que tengan score coseno menor a 0,3», pero no es lo que pasa. Por eso el notebook convierte mi umbral propuesto con `to_relevance()` antes de pasarlo al retriever, y la primera línea de la sección 4.4 imprime coseno crudo vs. relevancia para comprobarlo.
 
-⏳ *Pegar la tabla de scores (3 preguntas buenas, 2 fuera de contexto) y el umbral que imprime la celda.*
+La comprobación en el notebook lo confirma: para la pregunta de la Palmas E-Bike, coseno crudo = 0.435 y relevancia usada por el retriever = 0.718 = (0.435 + 1) / 2.
 
-_Mi respuesta / análisis:_ ⏳ umbral propuesto (en coseno) y su equivalente para el retriever.
+| Tipo | Pregunta | Fuente 1 (coseno) | Fuente 2 (coseno) | Fuente 3 (coseno) |
+|---|---|---|---|---|
+| Buena | ¿Cuánto cuesta la Palmas E-Bike y qué autonomía tiene? | Catálogo y precios (0.435) | Garantía (0.426) | Servicios de mantenimiento (0.326) |
+| Buena | ¿Quién debe aprobar un descuento del 15 %? | Política de descuentos (0.532) | Turnos y horas extra (0.197) | Plan de pagos a cuotas (0.183) |
+| Buena | ¿Cuánto dura la garantía de la batería de la bicicleta eléctrica? | Garantía (0.604) | Servicios de mantenimiento (0.410) | Política de devoluciones (0.303) |
+| Fuera | ¿Venden patinetas eléctricas? | Servicios de mantenimiento (0.282) | Catálogo y precios (0.275) | Garantía (0.170) |
+| Fuera | ¿Cuál es el NIT de Andina Bikes? | Plan de pagos a cuotas (0.439) | Catálogo y precios (0.436) | Horarios y sedes (0.400) |
+
+Top-1 mínimo de las preguntas buenas: **0.435**. Top-1 máximo de las fuera de contexto: **0.439** (el NIT).
+
+_Mi análisis y umbral propuesto:_ no hay una separación limpia. El NIT supera por 0.004 a una pregunta buena, así que ningún umbral separa perfectamente los dos grupos. La regla automática de la celda tomó el máximo de las fuera de contexto (0.44), pero eso habría descartado la pregunta buena de la Palmas E-Bike (0.435). En una app de soporte prefiero perder un poco de filtrado antes que dejar sin contexto una pregunta legítima, porque el prompt de A3 ya resuelve las negativas. Por eso propongo **umbral coseno = 0.42**, que en el retriever se pasa como `score_threshold = (0.42 + 1) / 2 = 0.71`. Ese valor:
+- deja pasar el top-1 de las tres preguntas buenas (0.435, 0.532 y 0.604);
+- descarta todos los chunks de la pregunta de patinetas (máximo 0.282), que era justo la que hizo fallar al modelo en A2;
+- deja pasar el NIT (0.439), que el prompt de A3 contesta con la frase fija.
+
+Con solo 5 preguntas esta propuesta es frágil. Para fijarla de verdad la calibraría con más preguntas de cada tipo y miraría la distribución de los scores, no solo los extremos. También queda claro que el valor original del curso (0.3 de relevancia = coseno ≥ −0.4) no filtraba nada en ninguno de los dos corpus.
 
 ---
 
