@@ -1,0 +1,62 @@
+[
+  {
+    "id": "ventas_001",
+    "title": "Catálogo y precios de bicicletas urbanas",
+    "content": "Andina Bikes S.A.S. vende tres modelos de bicicleta urbana. El modelo Comuna 13 cuesta $1.850.000 COP e incluye cambios Shimano de 7 velocidades. El modelo Laureles cuesta $2.400.000 COP, tiene marco de aluminio y frenos de disco mecánicos.\n\nEl modelo eléctrico Palmas E-Bike cuesta $6.900.000 COP, tiene una batería de 36 V y una autonomía aproximada de 60 km por carga. Todos los precios incluyen IVA.\n\nLos clientes que compran cualquier bicicleta reciben un casco básico de regalo y una revisión gratuita a los 30 días de la compra.",
+    "metadata": {"department": "ventas", "type": "catalogo"}
+  },
+  {
+    "id": "ventas_002",
+    "title": "Política de descuentos",
+    "content": "Los ejecutivos de tienda pueden aprobar descuentos de hasta el 10 % sobre el precio de lista. Los descuentos entre el 10 % y el 20 % requieren aprobación del gerente comercial. No se autorizan descuentos superiores al 20 % salvo en la liquidación de inventario de fin de año.\n\nLos estudiantes universitarios con carné vigente reciben un 8 % de descuento en bicicletas y accesorios. Este descuento no es acumulable con otras promociones.",
+    "metadata": {"department": "ventas", "type": "politica"}
+  },
+  {
+    "id": "ventas_003",
+    "title": "Plan de pagos a cuotas",
+    "content": "Andina Bikes ofrece financiación propia a 3, 6 o 12 cuotas mensuales para compras superiores a $1.500.000 COP. Las compras a 3 cuotas no tienen interés. Las compras a 6 y 12 cuotas tienen un interés del 1,5 % mensual.\n\nPara acceder a la financiación el cliente debe presentar cédula, un recibo de servicios públicos y realizar una cuota inicial del 20 % del valor de la bicicleta.",
+    "metadata": {"department": "finanzas", "type": "politica"}
+  },
+  {
+    "id": "taller_001",
+    "title": "Servicios de mantenimiento del taller",
+    "content": "El taller ofrece tres paquetes de mantenimiento. El mantenimiento básico cuesta $60.000 COP e incluye ajuste de frenos, ajuste de cambios y lubricación de cadena. El mantenimiento completo cuesta $140.000 COP e incluye además limpieza profunda de transmisión, centrado de ruedas y revisión de rodamientos.\n\nEl mantenimiento de bicicletas eléctricas cuesta $190.000 COP e incluye diagnóstico de batería y del motor. Los mantenimientos básicos se entregan el mismo día si la bicicleta se deja antes de las 11:00 a. m.; los completos y eléctricos tardan hasta 3 días hábiles.",
+    "metadata": {"department": "taller", "type": "servicio"}
+  },
+  {
+    "id": "taller_002",
+    "title": "Garantía de bicicletas y componentes",
+    "content": "Los marcos de aluminio tienen garantía de 5 años contra defectos de fabricación. Los componentes mecánicos (cambios, frenos, pedales) tienen garantía de 1 año. La batería y el motor de la Palmas E-Bike tienen garantía de 2 años o 800 ciclos de carga, lo que ocurra primero.\n\nLa garantía no cubre daños por accidentes, uso en competencias, ni modificaciones hechas fuera del taller de Andina Bikes. Para hacer efectiva la garantía se debe presentar la factura de compra.",
+    "metadata": {"department": "taller", "type": "politica"}
+  },
+  {
+    "id": "servicio_001",
+    "title": "Política de devoluciones y cambios",
+    "content": "Los accesorios sin uso y con empaque original pueden devolverse dentro de los 15 días calendario siguientes a la compra, con reembolso del 100 % al mismo medio de pago.\n\nLas bicicletas solo pueden cambiarse por otro modelo dentro de los primeros 7 días y siempre que tengan menos de 20 km de recorrido. No se hacen reembolsos en dinero por bicicletas; si el nuevo modelo es más caro, el cliente paga la diferencia.",
+    "metadata": {"department": "servicio_cliente", "type": "politica"}
+  },
+  {
+    "id": "servicio_002",
+    "title": "Horarios y sedes",
+    "content": "Andina Bikes tiene dos sedes en Medellín. La sede Laureles abre de lunes a sábado de 9:00 a. m. a 7:00 p. m. La sede El Poblado abre de lunes a sábado de 10:00 a. m. a 8:00 p. m. y los domingos de 10:00 a. m. a 3:00 p. m.\n\nEl taller solo funciona en la sede Laureles. Los festivos ambas sedes abren de 10:00 a. m. a 2:00 p. m.",
+    "metadata": {"department": "servicio_cliente", "type": "informacion"}
+  },
+  {
+    "id": "logistica_001",
+    "title": "Envíos y entregas a domicilio",
+    "content": "Las entregas a domicilio dentro del área metropolitana del Valle de Aburrá son gratuitas para compras superiores a $300.000 COP; para compras menores el envío cuesta $12.000 COP. Las entregas se realizan en un máximo de 48 horas hábiles.\n\nLos envíos a otras ciudades de Colombia se hacen por transportadora, tardan entre 3 y 6 días hábiles y su costo se calcula según el peso. Las bicicletas se envían parcialmente armadas y el cliente recibe un video tutorial de ensamble.",
+    "metadata": {"department": "logistica", "type": "procedimiento"}
+  },
+  {
+    "id": "rrhh_001",
+    "title": "Turnos y horas extra del personal",
+    "content": "El personal de tienda trabaja turnos de 8 horas con una hora de almuerzo. Los turnos de domingo y festivo se asignan por rotación y se pagan con un recargo del 75 %.\n\nLas horas extra deben ser aprobadas previamente por el administrador de la sede. Ningún empleado puede trabajar más de 10 horas extra por semana.",
+    "metadata": {"department": "recursos_humanos", "type": "politica"}
+  },
+  {
+    "id": "rrhh_002",
+    "title": "Programa de movilidad sostenible para empleados",
+    "content": "Los empleados de Andina Bikes que lleguen al trabajo en bicicleta al menos 3 días por semana reciben un bono mensual de $80.000 COP. Además, tienen 30 % de descuento en repuestos y un mantenimiento básico gratuito cada trimestre.\n\nPara inscribirse en el programa, el empleado debe registrar sus recorridos en la planilla compartida de su sede antes del día 25 de cada mes.",
+    "metadata": {"department": "recursos_humanos", "type": "beneficio"}
+  }
+]

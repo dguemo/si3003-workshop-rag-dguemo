@@ -1,0 +1,11 @@
+id,pregunta,fuente_esperada,palabra_clave,respuesta_esperada
+1,How many attention heads does the base Transformer use?,attention_paper.pdf,h = 8,h = 8 heads con dk = dv = 64
+2,What are the two RAG model variants?,rag_paper.pdf,RAG-Token,RAG-Sequence y RAG-Token
+3,What BLEU score did the big Transformer achieve on WMT 2014 English-to-German?,attention_paper.pdf,28.4,28.4 BLEU
+4,Why are the dot products scaled by one over the square root of dk?,attention_paper.pdf,dotproducts,Con dk grande los productos punto crecen y empujan el softmax a regiones de gradiente muy pequeño
+5,Which Adam beta2 value was used to train the Transformer?,attention_paper.pdf,0.98,beta1 = 0.9; beta2 = 0.98; epsilon = 1e-9
+6,What label smoothing value was used during Transformer training?,attention_paper.pdf,smoothing,label smoothing con epsilon_ls = 0.1
+7,On what GPUs was the Transformer trained?,attention_paper.pdf,P100,8 GPUs NVIDIA P100 en una sola máquina
+8,How many documents are in the Wikipedia index used by RAG?,rag_paper.pdf,21M,21 millones de fragmentos de 100 palabras (dump de diciembre de 2018)
+9,What architecture does the DPR retriever follow?,rag_paper.pdf,bi-encoder,Bi-encoder con dos BERT-base (consulta y documento)
+10,How many trainable parameters do the RAG models have?,rag_paper.pdf,626M,626M parámetros entrenables (110M BERT consulta + 110M BERT documento + 406M BART-large)
